@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f5f5f5;
+        }
+        #tweet-form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px;
+        }
+        #tweet-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        #submit-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        #submit-button:hover {
+            background-color: #45a049;
+        }
+        #results {
+            margin-top: 30px;
+        }
+        .result {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+        .tweet {
+            flex: 1;
+        }
+        .sentiment {
+            width: 100px;
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            height: 100px;
+            width: 100px;
+        }
+        .positive {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .negative {
+            background-color: #f44336;
+            color: white;
+        }
+        .neutral {
+            background-color: #4095e5;
+            color: white;
+        }
+        .emoji {
+            font-size: 48px;
+        }
+        .shake {
+            animation: shake 0.5s;
+            animation-iteration-count: 1;
+        }
+        .heading {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .heading h1 {
+            font-size: 36px;
+            margin: 0;
+            color: #333;
+        }
+
+        .heading .underline {
+            height: 3px;
+            width: 50px;
+            background-color: #4CAF50;
+            margin: 10px auto 0;
+            display: block;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            100% { transform: translate(1px, 1px) rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="heading">
+        <h1>Sentiment Analysis</h1>
+        <div class="underline"></div>
+    </div>
+    <form id="tweet-form" method="POST" action="/analyze">
+        <textarea name="tweet-input-key" id="tweet-input" placeholder="Enter your tweet here..."></textarea>
+        <button id="submit-button" type="submit">Analyze Sentiment</button>
+    </form>
+    <div id="results"></div>
+    <script>
+        const tweetForm = document.getElementById('tweet-form');
+        const tweetInput = document.getElementById('tweet-input');
+        const submitButton = document.getElementById('submit-button');
+        const resultsDiv = document.getElementById('results');
+    
+        tweetForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const tweetText = tweetInput.value.trim();
+            if (!tweetText) {
+                return;
+            }
+    
+            const resultDiv = document.createElement('div');
+            resultDiv.classList.add('result');
+            resultDiv.innerHTML = `
+                <div class="tweet">${tweetText}</div>
+                <div class="sentiment">
+                    <i class="emoji">${sentiment}</i>
+                </div>
+            `;
+            resultsDiv.appendChild(resultDiv);
+    
+            tweetInput.value = '';
+            resultDiv.classList.add('shake');
+            setTimeout(() => {
+                resultDiv.classList.remove('shake');
+            }, 500);
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tweet: tweetText })
+            })
+           .then(response => response.json())
+           .then(data => {
+                const sentiment = data.sentiment;
+                console.log(sentiment);
+                resultDiv.querySelector('.sentiment i').classList.add(sentiment.toLowerCase());
+                resultDiv.querySelector('.sentiment i').textContent = sentiment[0].toUpperCase() + sentiment.slice(1);
+            })
+           .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
